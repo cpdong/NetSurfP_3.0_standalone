@@ -14,13 +14,13 @@ All intellectual property rights, credit, and acknowledgments belong to the orig
 # **Getting started**
 
 ´´´
-# Setup environment
+## Setup environment
 conda env create --file environment.yml
 conda activate nsp3
 python setup.py install
 pip3 install -r requirements.txt
 
-# Run example FASTA
+## Run example FASTA
 python nsp3.py -m models/nsp3.pth -i example.fasta -o test
 
 ´´´
