@@ -1,0 +1,2 @@
+[console_scripts]
+nsp3 = nsp3.cli:cli

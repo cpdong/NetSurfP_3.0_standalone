@@ -1,0 +1,12 @@
+Metadata-Version: 2.4
+Name: nsp3
+Version: 0.0.2
+Summary: NetSurfP-3.0
+Author: Magnus Haraldson Hoie, Erik Kiehl
+Author-email: maghoi@dtu.dk
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 3.6
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: summary
