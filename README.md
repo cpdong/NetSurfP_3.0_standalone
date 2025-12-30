@@ -17,6 +17,7 @@ pip3 install -r requirements.txt
 
 # Run example FASTA
 python nsp3.py -m models/nsp3.pth -i example.fasta -o test
+
 ´´´
 
 Only amino acid input is accepted, maximum (5000) sequences or a total of (10M) residues, or set in nsp3/config.yml. Moreover, the application stops if there are incorrect residue letters in the fasta file.
