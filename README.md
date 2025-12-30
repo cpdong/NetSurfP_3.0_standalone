@@ -11,7 +11,7 @@ The official GitHub repository for NetSurfP-3.0 is: https://github.com/Eryk96/Ne
 All intellectual property rights, credit, and acknowledgments belong to the original authors and the Technical University of Denmark (DTU). Users should cite the original publication: Høie, M. H., et al. NetSurfP-3.0: accurate and fast prediction of protein structural features by protein language models and deep learning. Nucleic Acids Research, 50(W1), W510–W515 (2022).
 
 
-**Getting started**
+# **Getting started**
 
 ´´´
 # Setup environment
