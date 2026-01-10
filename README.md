@@ -15,7 +15,7 @@ All intellectual property rights, credit, and acknowledgments belong to the orig
 
 ´´´
 ## Setup environment
-python -c "import esm; esm.pretrained.esm1b_t33_650M_UR50S()" # preload ESM1b for NetSurfP_3.0
+python -c "import esm; esm.pretrained.esm1b_t33_650M_UR50S()" # preload ESM1b for NetSurfP_3.0<br>
 pip install git+https://github.com/cpdong/NetSurfP_3.0_standalone.git
 
 ## Run example FASTA
