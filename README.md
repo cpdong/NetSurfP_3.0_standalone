@@ -15,6 +15,7 @@ All intellectual property rights, credit, and acknowledgments belong to the orig
 
 ´´´
 ## Setup environment
+pip install numpy fair-esm transformers==4.57.3 torch==2.9.1 torchvision==0.24.1 torchaudio==2.9.1<br>
 python -c "import esm; esm.pretrained.esm1b_t33_650M_UR50S()" # preload ESM1b for NetSurfP_3.0<br>
 pip install git+https://github.com/cpdong/NetSurfP_3.0_standalone.git
 
