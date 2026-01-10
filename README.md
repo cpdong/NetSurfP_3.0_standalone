@@ -1,4 +1,4 @@
-# NetSurfP 3.0 minimal version
+# NetSurfP 3.0 standalone version
 
 # Disclaimer
 This repository is an unofficial fork of NetSurfP-3.0 and is provided solely for demonstration and installation convenience. Users must obtain the official NetSurfP-3.0 package, license, and model weights directly from the official website:
