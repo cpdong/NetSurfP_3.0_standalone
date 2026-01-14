@@ -1,4 +1,9 @@
+"""
+GPU memory clean up optimized to prevent OOM
+"""
+
 import esm
+import gc
 import math
 import torch
 import torch.nn as nn
@@ -66,31 +71,51 @@ class ESM1bEmbedding(nn.Module):
 
         batch_residues = batch_tokens.shape[1]
 
-        embedding = self.model(batch_tokens[:, :self.max_embedding], repr_layers=[33])[
-                               "representations"][33]
+        # FIX: Use torch.no_grad() to prevent gradient accumulation
+        with torch.no_grad():
+            # Get initial embedding
+            result = self.model(batch_tokens[:, :self.max_embedding], repr_layers=[33])
+            embedding = result["representations"][33].clone()  # Clone to detach from model internals
+            del result  # Immediately delete the result dict
 
-        batch_iter = math.ceil(batch_residues / (self.max_embedding - self.offset))
+            batch_iter = math.ceil(batch_residues / (self.max_embedding - self.offset))
 
-        # if size above 1024 then generate embeddings that overlaps with the offset
-        if batch_residues >= self.max_embedding:
-            # combine by overlaps
-            for i in range(1, batch_iter):
-                o1 = (self.max_embedding - self.offset) * i
-                o2 = o1 + self.max_embedding
+            # if size above 1024 then generate embeddings that overlaps with the offset
+            if batch_residues >= self.max_embedding:
+                # Collect embeddings in a list first, then concatenate once
+                embedding_parts = [embedding[:, :self.max_embedding - self.offset if batch_iter > 1 else embedding.shape[1]]]
+                
+                for i in range(1, batch_iter):
+                    o1 = (self.max_embedding - self.offset) * i
+                    o2 = o1 + self.max_embedding
 
-                if i == batch_iter - 1:
-                    if o2 > batch_residues:
-                        embedding = torch.cat([embedding[:, :o1], self.model(
-                        batch_tokens[:, o1:batch_residues], repr_layers=[33])["representations"][33]], dim=1)
+                    if i == batch_iter - 1:
+                        # Last iteration
+                        if o2 > batch_residues:
+                            result = self.model(batch_tokens[:, o1:batch_residues], repr_layers=[33])
+                            part = result["representations"][33].clone()
+                            del result
+                            embedding_parts.append(part)
+                        else:
+                            result = self.model(batch_tokens[:, o2 - self.offset:batch_residues], repr_layers=[33])
+                            part = result["representations"][33].clone()
+                            del result
+                            embedding_parts.append(part)
                     else:
-                        embedding = torch.cat([embedding[:, :o2 - self.offset], self.model(
-                        batch_tokens[:, o2 - self.offset:batch_residues], repr_layers=[33])["representations"][33]], dim=1)
-                else:
-                    embedding = torch.cat([embedding[:, :o1], self.model(
-                        batch_tokens[:, o1:o2], repr_layers=[33])["representations"][33]], dim=1)
+                        result = self.model(batch_tokens[:, o1:o2], repr_layers=[33])
+                        part = result["representations"][33].clone()
+                        del result
+                        # Only keep the non-overlapping part for middle sections
+                        embedding_parts.append(part[:, :self.max_embedding - self.offset])
+                        del part
 
-
-            embedding = torch.nan_to_num(embedding)
+                # Concatenate all parts at once (more memory efficient than repeated torch.cat)
+                embedding = torch.cat(embedding_parts, dim=1)
+                
+                # Clean up parts list
+                del embedding_parts
+                
+                embedding = torch.nan_to_num(embedding)
 
         # add padding
         if padding_length:
@@ -99,7 +124,11 @@ class ESM1bEmbedding(nn.Module):
 
         # cleanup
         del batch_tokens
-        torch.cuda.empty_cache()
+        
+        # Force garbage collection and clear CUDA cache
+        gc.collect()
+        if embedding.is_cuda:
+            torch.cuda.empty_cache()
 
         return embedding[:, 1:embedding.shape[1]-1, :]
 
@@ -177,6 +206,7 @@ class CNNbLSTM_ESM1b(nn.Module):
             r = torch.cat([r, layer(x)], dim=1)
 
         x = self.batch_norm(r)
+        del r  # FIX: Clean up intermediate tensor
 
         # calculate double layer bidirectional lstm
         x = x.permute(0, 2, 1)
